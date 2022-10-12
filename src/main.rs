@@ -37,11 +37,17 @@ struct Player {}
 fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     let mut positions = ecs.write_storage::<Position>();
     let mut players = ecs.write_storage::<Player>();
+    let map = ecs.fetch::<Vec<TileType>>();
 
     for (_player, pos) in (&mut players, &mut positions).join() {
         // 遍历所有玩家组件
-        pos.x = (pos.x + delta_x).clamp(0, 79);
-        pos.y = (pos.y + delta_y).clamp(0, 49);
+        let new_x = (pos.x + delta_x).clamp(0, 79);
+        let new_y = (pos.y + delta_y).clamp(0, 49);
+        let dst_index = xy2index(new_x, new_y);
+        if map[dst_index] != TileType::Wall {
+            pos.x = new_x;
+            pos.y = new_y;
+        }
     }
 }
 
@@ -106,7 +112,7 @@ fn draw_map(map: &[TileType], ctx: &mut Rltk) {
     for index in 0..map.len() {
         let tile = map[index];
         let (x, y) = index2xy(index);
-        
+
         match tile {
             TileType::Floor => {
                 ctx.set(
