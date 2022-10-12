@@ -1,5 +1,3 @@
-use std::cmp::{max, min};
-
 use rltk::{GameState, Rltk, RGB};
 use specs::prelude::*;
 use specs_derive::Component;
@@ -42,8 +40,8 @@ fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
 
     for (_player, pos) in (&mut players, &mut positions).join() {
         // 遍历所有玩家组件
-        pos.x = (pos.x+delta_x).clamp(0, 79);
-        pos.y = (pos.y+delta_y).clamp(0, 49);
+        pos.x = (pos.x + delta_x).clamp(0, 79);
+        pos.y = (pos.y + delta_y).clamp(0, 49);
     }
 }
 
@@ -60,6 +58,77 @@ fn player_input(gs: &mut State, ctx: &mut Rltk) {
     }
 }
 
+#[derive(PartialEq, Copy, Clone)]
+enum TileType {
+    Wall,
+    Floor,
+}
+
+pub fn xy2index(x: i32, y: i32) -> usize {
+    // ?为什么要使用usize
+    (y as usize * 80) + x as usize
+}
+pub fn index2xy(i: usize) -> (i32, i32) {
+    let x = (i % 80) as i32;
+    let y = (i / 80) as i32;
+    (x, y)
+}
+
+fn new_map() -> Vec<TileType> {
+    let mut map = vec![TileType::Floor; 80 * 50];
+    for x in 0..80 {
+        // 上下墙壁
+        map[xy2index(x, 0)] = TileType::Wall;
+        map[xy2index(x, 49)] = TileType::Wall;
+    }
+
+    for y in 0..50 {
+        // 左右墙壁
+        map[xy2index(0, y)] = TileType::Wall;
+        map[xy2index(79, y)] = TileType::Wall;
+    }
+
+    let mut rng = rltk::RandomNumberGenerator::new();
+    for _ in 0..400 {
+        // 400是墙壁的数量
+        let x = rng.roll_dice(1, 79); // 一个79面骰子
+        let y = rng.roll_dice(1, 49);
+
+        let index = xy2index(x, y);
+        map[index] = TileType::Wall;
+    }
+    map[xy2index(40, 25)] = TileType::Floor; // 出生点必须是空的
+
+    map
+}
+
+fn draw_map(map: &[TileType], ctx: &mut Rltk) {
+    for index in 0..map.len() {
+        let tile = map[index];
+        let (x, y) = index2xy(index);
+        
+        match tile {
+            TileType::Floor => {
+                ctx.set(
+                    x,
+                    y,
+                    RGB::from_f32(0.5, 0.5, 0.5),
+                    RGB::from_f32(0.0, 0.0, 0.0),
+                    rltk::to_cp437('.'),
+                );
+            }
+            TileType::Wall => {
+                ctx.set(
+                    x,
+                    y,
+                    RGB::from_f32(0.0, 1.0, 0.0),
+                    RGB::from_f32(0.0, 0.0, 0.0),
+                    rltk::to_cp437('#'),
+                );
+            }
+        }
+    }
+}
 struct State {
     ecs: World,
 }
@@ -76,8 +145,11 @@ impl GameState for State {
     fn tick(&mut self, ctx: &mut Rltk) {
         ctx.cls();
 
-        self.run_system();
         player_input(self, ctx);
+        self.run_system();
+
+        let map = self.ecs.fetch::<Vec<TileType>>();
+        draw_map(&map, ctx);
 
         let positions = self.ecs.read_storage::<Position>();
         let renderables = self.ecs.read_storage::<Renderable>();
@@ -96,6 +168,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<LeftMover>();
     gs.ecs.register::<Player>();
+    gs.ecs.insert(new_map());
 
     gs.ecs
         .create_entity()
