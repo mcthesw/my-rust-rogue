@@ -1,3 +1,8 @@
+mod map;
+mod rect;
+pub use rect::*;
+pub use map::*;
+
 use rltk::{GameState, Rltk, RGB};
 use specs::prelude::*;
 use specs_derive::Component;
@@ -64,49 +69,6 @@ fn player_input(gs: &mut State, ctx: &mut Rltk) {
     }
 }
 
-#[derive(PartialEq, Copy, Clone)]
-enum TileType {
-    Wall,
-    Floor,
-}
-
-pub fn xy2index(x: i32, y: i32) -> usize {
-    // ?为什么要使用usize
-    (y as usize * 80) + x as usize
-}
-pub fn index2xy(i: usize) -> (i32, i32) {
-    let x = (i % 80) as i32;
-    let y = (i / 80) as i32;
-    (x, y)
-}
-
-fn new_map() -> Vec<TileType> {
-    let mut map = vec![TileType::Floor; 80 * 50];
-    for x in 0..80 {
-        // 上下墙壁
-        map[xy2index(x, 0)] = TileType::Wall;
-        map[xy2index(x, 49)] = TileType::Wall;
-    }
-
-    for y in 0..50 {
-        // 左右墙壁
-        map[xy2index(0, y)] = TileType::Wall;
-        map[xy2index(79, y)] = TileType::Wall;
-    }
-
-    let mut rng = rltk::RandomNumberGenerator::new();
-    for _i in 0..400 {
-        // 400是墙壁的数量
-        let x = rng.roll_dice(1, 79); // 一个79面骰子
-        let y = rng.roll_dice(1, 49);
-
-        let index = xy2index(x, y);
-        map[index] = TileType::Wall;
-    }
-    map[xy2index(40, 25)] = TileType::Floor; // 出生点必须是空的
-
-    map
-}
 
 fn draw_map(map: &[TileType], ctx: &mut Rltk) {
     for index in 0..map.len() {
@@ -174,11 +136,13 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<LeftMover>();
     gs.ecs.register::<Player>();
-    gs.ecs.insert(new_map());
+    let (rooms,map) = new_map_rooms_and_corridors();
+    gs.ecs.insert(map);
 
+    let (player_x,player_y) = rooms.first().unwrap().center();
     gs.ecs
         .create_entity()
-        .with(Position { x: 40, y: 25 })
+        .with(Position { x: player_x, y: player_y })
         .with(Renderable {
             glyph: rltk::to_cp437('@'), // Ascii table for IBM PC charset (CP437)
             fg: RGB::named(rltk::YELLOW),
@@ -187,18 +151,18 @@ fn main() -> rltk::BError {
         .with(Player {})
         .build();
 
-    for i in 0..11 {
-        gs.ecs
-            .create_entity()
-            .with(Position { x: i * 7, y: 20 })
-            .with(Renderable {
-                glyph: rltk::to_cp437('A'),
-                fg: RGB::named(rltk::RED),
-                bg: RGB::named(rltk::BLACK),
-            })
-            .with(LeftMover {})
-            .build();
-    }
+    // for i in 0..11 {
+    //     gs.ecs
+    //         .create_entity()
+    //         .with(Position { x: i * 7, y: 20 })
+    //         .with(Renderable {
+    //             glyph: rltk::to_cp437('A'),
+    //             fg: RGB::named(rltk::RED),
+    //             bg: RGB::named(rltk::BLACK),
+    //         })
+    //         .with(LeftMover {})
+    //         .build();
+    // }
 
     rltk::main_loop(context, gs)
 }
