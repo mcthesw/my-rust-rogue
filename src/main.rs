@@ -95,7 +95,7 @@ fn new_map() -> Vec<TileType> {
     }
 
     let mut rng = rltk::RandomNumberGenerator::new();
-    for _ in 0..400 {
+    for _i in 0..400 {
         // 400是墙壁的数量
         let x = rng.roll_dice(1, 79); // 一个79面骰子
         let y = rng.roll_dice(1, 49);
@@ -180,7 +180,7 @@ fn main() -> rltk::BError {
         .create_entity()
         .with(Position { x: 40, y: 25 })
         .with(Renderable {
-            glyph: rltk::to_cp437('@'),
+            glyph: rltk::to_cp437('@'), // Ascii table for IBM PC charset (CP437)
             fg: RGB::named(rltk::YELLOW),
             bg: RGB::named(rltk::BLACK),
         })
