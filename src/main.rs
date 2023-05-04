@@ -7,8 +7,6 @@ use rltk::{GameState, Rltk, RGB};
 use specs::prelude::*;
 use specs_derive::Component;
 
-struct Apple{}
-
 #[derive(Component, Debug)]
 struct Position {
     x: i32,
@@ -165,10 +163,6 @@ fn main() -> rltk::BError {
     //         .with(LeftMover {})
     //         .build();
     // }
-    let MY_LIST = ["one", "two", "three"];
-    for i in 0..MY_LIST.len() {
-        println!("got {}", MY_LIST[i]);
-    }
 
     rltk::main_loop(context, gs)
 }
