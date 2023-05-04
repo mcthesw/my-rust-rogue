@@ -7,6 +7,8 @@ use rltk::{GameState, Rltk, RGB};
 use specs::prelude::*;
 use specs_derive::Component;
 
+struct Apple{}
+
 #[derive(Component, Debug)]
 struct Position {
     x: i32,
