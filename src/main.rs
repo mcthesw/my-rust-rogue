@@ -128,6 +128,10 @@ impl GameState for State {
 }
 
 fn main() -> rltk::BError {
+    let a = 0;
+    let b = 0;
+    if a >= b+1 {}
+
     use rltk::RltkBuilder;
     let context = RltkBuilder::simple80x50().with_title("神必Rouge").build()?;
 
