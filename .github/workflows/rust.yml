@@ -2,6 +2,8 @@ name: clippy-action
 on: [pull_request]
 jobs:
   clippy:
+    permissions:
+      pull-requests: write
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -11,5 +13,5 @@ jobs:
     - uses: giraffate/clippy-action@v1
       with:
         filter_mode: nofilter
-        reporter: 'github-pr-review'
+        reporter: 'github-pr-check'
         github_token: ${{ secrets.GITHUB_TOKEN }}
