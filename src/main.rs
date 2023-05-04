@@ -17,7 +17,7 @@ struct Position {
 struct Renderable {
     glyph: rltk::FontCharType,
     fg: RGB,
-    bg: RGB,
+    bg: RGBB,
 }
 
 #[derive(Component, Debug)]
