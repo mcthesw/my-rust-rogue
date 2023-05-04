@@ -11,18 +11,13 @@ env:
 
 jobs:
   clippy:
-    permissions:
-      pull-requests: write
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - uses: dtolnay/rust-toolchain@stable
-      with:
-        components: clippy
-    - uses: giraffate/clippy-action@v1
-      with:
-        reporter: 'github-pr-check'
-        filter_mode: nofilter
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        fail_on_error: true
-        clippy_flags: --all --all-targets --features full-async
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@master
+        - uses: dtolnay/rust-toolchain@master
+          with:
+            components: clippy
+        - uses: actions-rs/clippy-check@v1
+          with:
+            token: ${{ secrets.GITHUB_TOKEN }}
+            args: --all --all-targets
