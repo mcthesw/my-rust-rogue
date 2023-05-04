@@ -13,8 +13,8 @@ jobs:
   clippy:
       runs-on: ubuntu-latest
       steps:
-        - uses: actions/checkout@master
-        - uses: dtolnay/rust-toolchain@master
+        - uses: actions/checkout@v3
+        - uses: dtolnay/rust-toolchain@stable
           with:
             components: clippy
         - uses: actions-rs/clippy-check@v1
